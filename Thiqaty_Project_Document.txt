@@ -1,0 +1,391 @@
+THIQATY
+ثقتي  —  “my trust”
+Personal Encrypted Life & Vault Management App
+Project Document
+PRD  •  TRD  •  App Flow  •  UI/UX Design  •  Backend Schema  •  Implementation Plan
+Prepared for: Mohammad
+Platform: React Native (Expo)  |  Local-only, on-device encrypted storage
+Version 1.0
+Table of Contents
+1. Executive Summary
+Thiqaty is a personal, single-user, local-only application for managing daily work, freelance pipeline, finances, exam and interview preparation, notes, and passwords — all encrypted on-device with no server or cloud dependency. The name Thiqaty (ثقتي) is Arabic for “my trust,” reflecting the app's core purpose: a single trusted place for everything that matters, accessible only to its owner.
+This document merges the Product Requirements Document (PRD), Technical Requirements Document (TRD), application flow, UI/UX design direction, backend data schema, and implementation plan into a single reference for development.
+2. Product Requirements Document (PRD)
+2.1 Problem Statement
+Daily work, freelance client pipeline, company tasks, interview and exam preparation, expenses, bank ledger tracking, and account passwords are currently scattered across notes apps, spreadsheets, browser password managers, and memory. None of these are unified, none are fully private, and cloud-based tools require trusting a third party with sensitive financial and credential data.
+2.2 Goals
+Provide one application covering tasks, freelance pipeline, company work, interview/exam prep, notes, expense and bank ledger tracking, and password storage.
+Guarantee all data stays on the user's device — no server, no cloud sync, no third-party access.
+Protect the app with biometric authentication (Face ID / fingerprint) matching the device's own unlock method, with a PIN fallback.
+Add a second, stronger authentication step specifically before revealing stored passwords.
+Keep the interface clean, fast, and distraction-free — built for daily, repeated use.
+2.3 Non-Goals
+No cloud backup or multi-device sync in v1 (manual encrypted export/import only).
+No bank API / account-aggregator integration — ledger entries are manually entered.
+No multi-user or sharing features — single-owner app only.
+2.4 Target User
+A single user (Mohammad) — a full-stack developer balancing a full-time job, freelance client work, interview preparation, and personal finances — who wants full ownership and privacy over personal data without depending on any external service.
+2.5 Feature Modules
+2.5.1 Dashboard
+Today's tasks and upcoming deadlines
+Pipeline items needing action
+This month's income vs. expense snapshot
+Quick-add shortcut for task, expense, or note
+2.5.2 Tasks & Deadlines
+Title, category (Company / Freelance / Personal), priority, due date & time
+Recurring tasks, subtasks/checklist, status (Pending / In Progress / Done)
+Local push notification tied to due date
+2.5.3 Freelance Pipeline
+Kanban-style stages: Lead → Proposal Sent → In Progress → Review → Paid / Closed
+Client name, platform (Fiverr / Upwork / Direct), value, next action, notes
+Optional link to related tasks
+2.5.4 Company Work
+Separate task/board view for full-time employment items, distinct from freelance
+Meeting notes and optional hours-logged field
+2.5.5 Interview & Exam Preparation
+Entry type: Job Interview or Competitive Exam
+Company/exam name, role, date, round, prep checklist, notes, outcome
+2.5.6 Notes
+Free-form notes with tags and optional link to a task, pipeline item, or interview entry
+2.5.7 Finance: Expenses & Bank Ledger
+Expense entries: amount, category, date, recurring flag, optional linked client
+Bank account records with running ledger of credit/debit entries and balance
+Monthly summary and simple bar/line charts
+2.5.8 Password Vault
+Site/app name, username, encrypted password, URL, notes
+Requires a fresh biometric step-up prompt to reveal any password, separate from the app's main unlock
+Clipboard auto-clears 30–60 seconds after copying a password
+2.5.9 Reminders
+General-purpose reminders not tied to a specific task or module
+2.5.10 Attachments
+Attach files (PDF, image, doc) to a Task, Pipeline client, Interview/Exam entry, or Note — e.g. a resume version, offer letter, exam admit card, client contract, or reference source
+Files are stored as encrypted blobs on-device (not inside the database itself); only lightweight metadata is kept in the database
+Preview supported for PDFs and images directly within the app
+2.6 Success Criteria
+App opens and unlocks in under 2 seconds via biometric
+Zero network calls made by the app at any point (verifiable by code review)
+All seven modules usable offline, on a single device, with no account creation required
+3. Technical Requirements Document (TRD)
+3.1 Technology Stack
+Layer
+Technology
+Framework
+React Native + Expo
+State management
+Zustand
+Local database
+Realm (embedded, document-oriented, encrypted at rest)
+Auth / biometrics
+expo-local-authentication
+Secure key storage
+react-native-keychain (iOS Keychain / Android Keystore)
+Notifications
+expo-notifications (local only)
+Charts
+recharts or victory-native
+Backup / export
+expo-file-system + manual passphrase-encrypted export file
+3.2 Security Requirements
+Entire Realm database file encrypted at rest with a 64-byte AES key.
+The database encryption key is generated on first launch and stored only inside the device Keychain/Keystore — never written to disk in plain form.
+App unlock: biometric prompt (Face ID / fingerprint) via the OS, matching the device's own unlock method, without the app ever seeing the raw biometric or device PIN.
+PIN fallback: app-specific PIN, stored only as a salted Argon2id/PBKDF2 hash, never in plain text.
+Auto-lock after a configurable idle period (default 2 minutes in background).
+Password Vault module requires a second, fresh biometric step-up — a prior app unlock does not carry over.
+Each stored password is additionally field-level encrypted (envelope encryption) with a key released only after the step-up prompt.
+FLAG_SECURE (Android) / obscured app-switcher preview (iOS) on vault and finance screens to block screenshots and screen recording.
+Realm database file explicitly excluded from iOS iCloud backup and Android auto-backup.
+Zero network permissions requested by the app; no analytics or crash-reporting SDKs that transmit data externally.
+Attached files are encrypted individually on-device (via expo-file-system) using a key derived from the same Keychain-held root key; the database stores only file metadata and the encrypted-file reference, never the raw file.
+3.3 Non-Functional Requirements
+Offline-first: 100% of features function with no internet connection, at all times.
+Performance: list views (tasks, ledger, pipeline) remain smooth up to several thousand records.
+Data integrity: no data loss on app crash — Realm writes are transactional.
+Portability: manual export produces a single encrypted file the user can store anywhere of their choosing.
+4. Application Flow
+4.1 Navigation Flow
+App Launch → Biometric / PIN Gate → Dashboard → Feature Modules (Tasks, Pipeline, Company Work, Interview/Exam Prep, Notes, Finance, Password Vault, Reminders). The Password Vault module sits behind an additional step-up authentication prompt, shown as a distinct branch from the rest of the dashboard.
+4.2 Screen List
+Splash / Launch
+Auth Gate (biometric primary, PIN fallback)
+Dashboard (home)
+Tasks — list, add/edit, detail
+Pipeline — Kanban board, client detail, add/edit
+Company Work — board/list, add/edit
+Interview / Exam Prep — list, add/edit, detail with checklist
+Notes — list, editor
+Finance — expense list, bank accounts, ledger detail, monthly summary
+Password Vault — step-up prompt, list, add/edit, reveal-on-demand detail
+Reminders — list, add/edit
+Settings — PIN change, biometric toggle, auto-lock timer, backup/export, restore
+4.3 First-Run Flow
+Welcome screen introducing Thiqaty and its local-only privacy model
+Set up PIN
+Enable biometric unlock (optional but recommended)
+Land on an empty Dashboard with quick-start prompts for each module
+5. UI/UX Design
+5.1 Design Principles
+Calm and trustworthy — this app holds sensitive data, so the visual tone should feel secure and unhurried, not playful.
+Fast daily use — the Dashboard and quick-add flows should need minimal taps.
+Clear separation — modules are visually distinct so Company Work never blends with Freelance Pipeline, and Finance never blends with the Password Vault.
+5.2 Color Palette
+Role
+Color
+Usage
+Primary
+Deep Teal (#0F6E56)
+Navigation, primary buttons, headers
+Accent
+Warm Gold (#854F0B / #BA7517)
+Highlights, active states, key actions
+Background
+Warm Cream (#FAEEDA / #FFFFFF)
+Screen backgrounds, cards
+Vault accent
+Muted Red (#A32D2D)
+Password Vault module only, signals extra sensitivity
+Neutral text
+Charcoal Gray (#2C2C2A)
+Body text
+This palette reuses the Deep Teal / Warm Gold / Warm Cream direction already established for other personal projects, applied consistently here for visual familiarity.
+5.3 Typography
+One clean sans-serif family throughout (e.g., Inter or system default).
+Two weights only: regular for body text, medium/semi-bold for headings and labels.
+5.4 Key Screen Notes
+Dashboard: card-based layout, one card per module summary, tap to enter.
+Pipeline: horizontal-scroll Kanban columns matching the five stages.
+Password Vault: list shows site name and username only — password is always masked until the reveal action triggers a fresh biometric prompt.
+Finance: ledger entries in a simple table/list with running balance column; monthly summary as a small bar chart on the Finance home screen.
+6. Backend / Data Schema
+Local embedded document database (Realm), fully encrypted at rest. Each module maps to one Realm object schema (“collection”).
+6.1 Collections
+User
+Field
+Type
+id
+string (pk)
+pinHash
+string
+biometricEnabled
+bool
+autoLockMinutes
+int
+createdAt
+date
+Task
+Field
+Type
+id
+string (pk)
+title
+string
+category
+enum: Company | Freelance | Personal
+priority
+enum: Low | Medium | High
+dueAt
+date
+recurring
+string?
+checklist
+list<string>
+status
+enum: Pending | InProgress | Done
+notes
+string?
+PipelineItem
+Field
+Type
+id
+string (pk)
+clientName
+string
+platform
+enum: Fiverr | Upwork | Direct
+stage
+enum: Lead | Proposal | InProgress | Review | Paid
+value
+double
+currency
+string
+nextAction
+string?
+linkedTaskIds
+list<string>
+notes
+string?
+InterviewPrep
+Field
+Type
+id
+string (pk)
+type
+enum: JobInterview | CompetitiveExam
+companyOrExam
+string
+role
+string?
+date
+date
+round
+string?
+checklist
+list<string>
+questionsAsked
+list<string>
+outcome
+string?
+notes
+string?
+Note
+Field
+Type
+id
+string (pk)
+title
+string
+body
+string
+tags
+list<string>
+linkedToType
+string?
+linkedToId
+string?
+updatedAt
+date
+Expense
+Field
+Type
+id
+string (pk)
+amount
+double
+category
+string
+date
+date
+recurring
+bool
+linkedClientId
+string?
+notes
+string?
+BankAccount
+Field
+Type
+id
+string (pk)
+bankName
+string
+accountLabel
+string
+lastFourDigits
+string
+openingBalance
+double
+currency
+string
+LedgerEntry
+Field
+Type
+id
+string (pk)
+accountId
+string (fk)
+date
+date
+type
+enum: Credit | Debit
+amount
+double
+category
+string
+balanceAfter
+double
+notes
+string?
+Credential  (Password Vault — field-level encrypted)
+Field
+Type
+id
+string (pk)
+siteOrApp
+string
+username
+string
+encryptedPassword
+string (envelope-encrypted)
+url
+string?
+notes
+string?
+updatedAt
+date
+Reminder
+Field
+Type
+id
+string (pk)
+title
+string
+remindAt
+date
+recurring
+string?
+linkedToType
+string?
+linkedToId
+string?
+Attachment
+Field
+Type
+id
+string (pk)
+fileName
+string
+mimeType
+string
+sizeBytes
+int
+encryptedFilePath
+string
+linkedToType
+enum: Task | PipelineItem | InterviewPrep | Note
+linkedToId
+string (fk)
+addedAt
+date
+6.2 Encryption Model Summary
+Realm-level: whole database file encrypted with a 64-byte key held in Keychain/Keystore.
+Field-level: Credential.encryptedPassword additionally encrypted with a second key released only after step-up biometric authentication.
+No collection is ever transmitted over a network; all repositories perform local CRUD only.
+7. Implementation Plan
+Phased build order, prioritizing the security foundation before feature modules.
+Phase 1 — Foundation (Days 1–4)
+Expo project setup, navigation shell, Zustand store scaffolding
+Realm integration with encryption key generation and Keychain storage
+Biometric + PIN auth gate, auto-lock logic
+Phase 2 — Core Modules (Days 5–12)
+Tasks module (CRUD, notifications)
+Freelance Pipeline (Kanban board, CRUD)
+Company Work module
+Interview / Exam Prep module
+Notes module
+Phase 3 — Finance & Vault (Days 13–18)
+Expense tracking + monthly summary chart
+Bank accounts + ledger entries with running balance
+Password Vault with step-up auth and field-level envelope encryption
+Reminders module
+Attachments: encrypted on-device file storage, linking UI, and PDF/image preview
+Phase 4 — Polish & Hardening (Days 19–23)
+Dashboard aggregation view
+FLAG_SECURE / screenshot-block on sensitive screens
+Exclude database from OS-level auto-backup
+Manual encrypted export/import flow
+UI polish to the Deep Teal / Warm Gold / Warm Cream palette
+Phase 5 — Testing & Release (Days 24–25)
+Security review: confirm zero network calls, verify encryption at rest, verify step-up auth cannot be bypassed
+Device testing across at least one Android and one iOS device
+Internal release build for personal daily use
+End of document — Thiqaty v1.0

@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "Thiqaty",
+    "slug": "Thiqaty",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/thiqaty-logo.png",
+    "notification": {
+      "icon": "./assets/real-notification-thiqaty.png"
+    },
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.thiqaty.app",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Thiqaty uses Face ID to securely unlock your vault and authenticate.",
+        "NSPhotoLibraryUsageDescription": "Thiqaty needs access to save and read encrypted file attachments."
+      }
+    },
+    "android": {
+      "package": "com.thiqaty.app",
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED",
+        "WAKE_LOCK",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/thiqaty-logo.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Thiqaty to use Face ID for secure authentication."
+        }
+      ],
+      "expo-image"
+    ]
+  }
+}
