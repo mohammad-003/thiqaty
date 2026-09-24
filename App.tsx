@@ -6,6 +6,11 @@ import { getOrInitializeRealmKey } from '@/services/encryption';
 import { RealmProvider } from '@/db/realmConfig';
 import RootNavigator from '@/navigation/RootNavigator';
 
+import { Provider as PaperProvider } from 'react-native-paper';
+import { paperTheme } from '@/constants/theme';
+
+import { StatusBar } from 'expo-status-bar';
+
 export default function App() {
   const [encryptionKey, setEncryptionKey] = useState<Int8Array | null>(null);
   const [error, setError] = useState<Error | null>(null);
@@ -41,9 +46,12 @@ export default function App() {
 
   return (
     <RealmProvider encryptionKey={encryptionKey}>
-      <NavigationContainer>
-        <RootNavigator />
-      </NavigationContainer>
+      <PaperProvider theme={paperTheme}>
+        <StatusBar style="light" />
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      </PaperProvider>
     </RealmProvider>
   );
 }

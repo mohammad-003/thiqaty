@@ -9,6 +9,10 @@
       "icon": "./assets/real-notification-thiqaty.png"
     },
     "userInterfaceStyle": "light",
+    "androidStatusBar": {
+      "backgroundColor": "#173248",
+      "translucent": false
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.thiqaty.app",
@@ -19,6 +23,7 @@
     },
     "android": {
       "package": "com.thiqaty.app",
+      "userInterfaceStyle": "light",
       "permissions": [
         "USE_BIOMETRIC",
         "USE_FINGERPRINT",
@@ -26,7 +31,9 @@
         "RECEIVE_BOOT_COMPLETED",
         "WAKE_LOCK",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -47,6 +54,11 @@
         }
       ],
       "expo-image"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "91e1cc70-dc4d-4303-b98f-7460452ba1f9"
+      }
+    }
   }
 }

@@ -1,15 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuthStore } from '@/store/authStore';
+import { useQuery } from '@/db/realmConfig';
+import { User } from '@/db/schemas';
 
-// We will import placeholder screens from the screens directory
 import AuthScreen from '@/screens/Auth';
-import DashboardScreen from '@/screens/Dashboard';
+import AppStack from './AppStack';
 
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
-  const { isSetup, isUnlocked } = useAuthStore();
+  const { isSetup, isUnlocked, setSetup } = useAuthStore();
+  const users = useQuery(User);
+
+  useEffect(() => {
+    if (users.length > 0 && !isSetup) {
+      setSetup(true);
+    }
+  }, [users, isSetup, setSetup]);
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -21,7 +29,7 @@ export default function RootNavigator() {
         <Stack.Screen name="Unlock" component={AuthScreen} initialParams={{ mode: 'unlock' }} />
       ) : (
         // Unlocked: Main App
-        <Stack.Screen name="App" component={DashboardScreen} />
+        <Stack.Screen name="App" component={AppStack} />
       )}
     </Stack.Navigator>
   );

@@ -7,7 +7,8 @@ import { schemas } from './schemas';
  */
 export const { RealmProvider, useRealm, useQuery, useObject } = createRealmContext({
   schema: schemas,
-  schemaVersion: 1,
+  schemaVersion: 2,
+  deleteRealmIfMigrationNeeded: true,
   // We don't set encryptionKey here statically.
   // We will pass the encryptionKey prop dynamically to the <RealmProvider> when we mount it.
 });
